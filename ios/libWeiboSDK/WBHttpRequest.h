@@ -13,8 +13,7 @@
 @class WBHttpRequest;
 
 /**
- 接收并处理来自微博sdk对于网络请求接口的调用响应 以及openAPI
- 如inviteFriend、logOutWithToken的请求
+ 接收并处理来自微博sdk对于网络请求接口的调用响应 以及logOutWithToken的请求
  */
 @protocol WBHttpRequestDelegate <NSObject>
 
@@ -125,13 +124,13 @@
  @param delegate WBHttpRequestDelegate对象，用于接收微博SDK对于发起的接口请求的请求的响应
  @param tag 用户自定义TAG,将通过回调WBHttpRequest实例的tag属性返回
  */
+
 + (WBHttpRequest *)requestWithAccessToken:(NSString *)accessToken
                                       url:(NSString *)url
                                httpMethod:(NSString *)httpMethod
                                    params:(NSDictionary *)params
                                  delegate:(id<WBHttpRequestDelegate>)delegate
                                   withTag:(NSString *)tag;
-
 
 
 /**
