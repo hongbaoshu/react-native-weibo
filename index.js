@@ -6,6 +6,9 @@ const defaultScope = "all";
 const defaultRedirectURI = "https://api.weibo.com/oauth2/default.html";
 
 export const login = WeiboAPI.login;
-export const register = ({ appId, redirectUri = defaultRedirectURI, scope = defaultScope }) => {
-  WeiboAPI.register({ appId, redirectUri, scope });
-};
+export const share = WeiboAPI.share;
+export const register = ({ appId, redirectUri = defaultRedirectURI, scope = defaultScope }) => WeiboAPI.register({
+  appId,
+  redirectUri,
+  scope
+});
