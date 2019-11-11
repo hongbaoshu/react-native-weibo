@@ -54,7 +54,6 @@ public class WeiboModule extends ReactContextBaseJavaModule implements ActivityE
 
             final AuthInfo sinaAuthInfo = new AuthInfo(getReactApplicationContext(), this.appId, redirectURI, scope);
             WbSdk.install(getCurrentActivity(), sinaAuthInfo);
-            mSsoHandler = new SsoHandler(getCurrentActivity());
             wbSdkInstalled = true;
             promise.resolve(true);
         }
