@@ -10,8 +10,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.NinePatchDrawable;
 import android.net.Uri;
-import android.util.Log;
-import android.widget.Toast;
 
 import com.facebook.common.executors.UiThreadImmediateExecutorService;
 import com.facebook.common.references.CloseableReference;
@@ -225,6 +223,72 @@ public class WeiboModule extends ReactContextBaseJavaModule implements ActivityE
         }
     }
 
+    public void shareNews(ReadableMap data, Bitmap bitmap) {
+        WeiboMultiMessage weiboMessage = new WeiboMultiMessage();//初始化微博的分享消息
+        TextObject textObject = new TextObject();
+        if (data.hasKey(RCTWBShareText)) {
+            textObject.text = data.getString(RCTWBShareText);
+        }
+        weiboMessage.textObject = textObject;
+        addMessageDetail(weiboMessage, data, bitmap);
+        mShareHandler.shareMessage(weiboMessage, false);
+    }
+
+    public void shareText(ReadableMap data) {
+        WeiboMultiMessage weiboMessage = new WeiboMultiMessage();//初始化微博的分享消息
+        TextObject textObject = new TextObject();
+        textObject.text = data.getString(RCTWBShareText);
+        weiboMessage.textObject = textObject;
+        mShareHandler.shareMessage(weiboMessage, false);
+    }
+
+    public void shareImage(ReadableMap data, Bitmap bitmap) {
+        WeiboMultiMessage weiboMessage = new WeiboMultiMessage();//初始化微博的分享消息
+        ImageObject imageObject = new ImageObject();
+        if (bitmap != null) {
+            imageObject.setImageObject(bitmap);
+        }
+        weiboMessage.imageObject = imageObject;
+        mShareHandler.shareMessage(weiboMessage, false);
+    }
+
+    public void shareVideo(ReadableMap data, Bitmap bitmap) {
+
+        WeiboMultiMessage weiboMessage = new WeiboMultiMessage();//初始化微博的分享消息
+        TextObject textObject = new TextObject();
+        if (data.hasKey(RCTWBShareText)) {
+            textObject.text = data.getString(RCTWBShareText);
+        }
+        weiboMessage.textObject = textObject;
+        VideoSourceObject videoObject = new VideoSourceObject();
+        // if (data.hasKey(RCTWBShareWebpageUrl)) {
+        //     videoObject.dataUrl = data.getString(RCTWBShareWebpageUrl);
+        // }
+
+        videoObject.videoPath = Uri.parse(data.getString(RCTWBSharePropVideoPath));
+        weiboMessage.mediaObject = videoObject;
+        addMessageDetail(weiboMessage, data, bitmap);
+        mShareHandler.shareMessage(weiboMessage, false);
+    }
+
+    private void addMessageDetail(WeiboMultiMessage weiboMessage, ReadableMap data, Bitmap bitmap) {
+        WebpageObject webpageObject = new WebpageObject();
+        if (data.hasKey(RCTWBShareWebpageUrl)) {
+            webpageObject.actionUrl = data.getString(RCTWBShareWebpageUrl);
+        }
+        if (data.hasKey(RCTWBShareDescription)) {
+            weiboMessage.mediaObject.description = data.getString(RCTWBShareDescription);
+        }
+        if (data.hasKey(RCTWBShareTitle)) {
+            weiboMessage.mediaObject.title = data.getString(RCTWBShareTitle);
+        }
+        if (bitmap != null) {
+            weiboMessage.mediaObject.setThumbImage(bitmap);
+        }
+        weiboMessage.mediaObject = webpageObject;
+        weiboMessage.mediaObject.identify = new Date().toString();
+    }
+
     private void _share(ReadableMap data, Bitmap bitmap) {
         WeiboMultiMessage weiboMessage = new WeiboMultiMessage();//初始化微博的分享消息
         TextObject textObject = new TextObject();
@@ -242,7 +306,6 @@ public class WeiboModule extends ReactContextBaseJavaModule implements ActivityE
         } else if (type.equals(RCTWBShareTypeImage)) {
             ImageObject imageObject = new ImageObject();
             if (bitmap != null) {
-                Log.e("share", "hasBitmap");
                 imageObject.setImageObject(bitmap);
             }
             weiboMessage.imageObject = imageObject;
