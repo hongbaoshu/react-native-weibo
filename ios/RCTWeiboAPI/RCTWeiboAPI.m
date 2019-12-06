@@ -40,7 +40,8 @@
 BOOL gRegister = NO;
 
 @interface RCTWeiboAPI()<WeiboSDKDelegate>
-
+@property (nonatomic, strong) NSString *redirectURI;
+@property (nonatomic, strong) NSString *scope;
 @end
 
 @implementation RCTWeiboAPI
@@ -64,19 +65,41 @@ RCT_EXPORT_MODULE();
     return self;
 }
 
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
+
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-RCT_EXPORT_METHOD(login:(NSDictionary *)config
-                  :(RCTResponseSenderBlock)callback)
+RCT_REMAP_METHOD(register, registerWithConfig:(NSDictionary *)config)
 {
-    [self _autoRegisterAPI];
-    
-    WBAuthorizeRequest *request = [self _genAuthRequest:config];
+    if (gRegister) {
+        return @YES;
+    }
+    self.redirectURI = config[@"redirectURI"];
+    self.scope = config[@"scope"];
+    NSString *appId = config[@"appId"];
+    if ([WeiboSDK registerApp:appId]) {
+        gRegister = YES;
+    }
+    return @YES
+}
+
+
+RCT_REMAP_METHOD(login,resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+{
+    WBAuthorizeRequest *request = [self _genAuthRequest];
     BOOL success = [WeiboSDK sendRequest:request];
-    callback(@[success?[NSNull null]:INVOKE_FAILED]);
+    if(success){
+        resolve(@YES);
+    } else {
+        NSError *error = [NSError new];
+        reject(@"no_events", @"There were no events", error);
+    }
 }
 
 RCT_EXPORT_METHOD(logout)
@@ -87,8 +110,6 @@ RCT_EXPORT_METHOD(logout)
 RCT_EXPORT_METHOD(shareToWeibo:(NSDictionary *)aData
                   :(RCTResponseSenderBlock)callback)
 {
-    [self _autoRegisterAPI];
-    
     NSString *imageUrl = aData[RCTWBShareImageUrl];
     if (imageUrl.length && _bridge.imageLoader) {
         CGSize size = CGSizeZero;
@@ -168,34 +189,6 @@ RCT_EXPORT_METHOD(shareToWeibo:(NSDictionary *)aData
 }
 
 #pragma mark - private
-
-// 如果js没有调用registerApp，自动从plist中读取appId
-- (void)_autoRegisterAPI
-{
-    if (gRegister) {
-        return;
-    }
-    
-    NSArray *list = [[[NSBundle mainBundle] infoDictionary] valueForKey:@"CFBundleURLTypes"];
-    for (NSDictionary *item in list) {
-        NSString *name = item[@"CFBundleURLName"];
-        if ([name isEqualToString:@"sina"]) {
-            NSArray *schemes = item[@"CFBundleURLSchemes"];
-            if (schemes.count > 0)
-            {
-                NSString *appId = [schemes[0] substringFromIndex:@"wb".length];
-                if ([WeiboSDK registerApp:appId]) {
-                    gRegister = YES;
-                }
-#ifdef DEBUG
-                [WeiboSDK enableDebugMode:YES];
-#endif
-                break;
-            }
-        }
-    }
-}
-
 - (NSString *)_getErrMsg:(NSInteger)errCode
 {
     NSString *errMsg = @"微博认证失败";
@@ -265,7 +258,7 @@ RCT_EXPORT_METHOD(shareToWeibo:(NSDictionary *)aData
         }
     }
     
-    WBAuthorizeRequest *authRequest = [self _genAuthRequest:aData];
+    WBAuthorizeRequest *authRequest = [self _genAuthRequest];
     NSString *accessToken = aData[RCTWBShareAccessToken];
     WBSendMessageToWeiboRequest *request = [WBSendMessageToWeiboRequest requestWithMessage:message authInfo:authRequest access_token:accessToken];
     
@@ -279,14 +272,11 @@ RCT_EXPORT_METHOD(shareToWeibo:(NSDictionary *)aData
     }
 }
 
-- (WBAuthorizeRequest *)_genAuthRequest:(NSDictionary *)config
+- (WBAuthorizeRequest *)_genAuthRequest
 {
-    NSString *redirectURI = config[@"redirectURI"];
-    NSString *scope = config[@"scope"];
-    
     WBAuthorizeRequest *authRequest = [WBAuthorizeRequest request];
-    authRequest.redirectURI = redirectURI;
-    authRequest.scope = scope;
+    authRequest.redirectURI = self.redirectURI;
+    authRequest.scope = self.scope;
     
     return authRequest;
 }

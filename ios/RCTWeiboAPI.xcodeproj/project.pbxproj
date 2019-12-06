@@ -231,10 +231,11 @@
 		915450FF1C3D1520000CBFD2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../node_modules/react-native";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
+					"$(SRCROOT)/../node_modules/react-native/React/**",
 					"$(SRCROOT)/../../react-native/React/**",
-					"$(SRCROOT)/../../react-native/Libraries/**",
 					"$(BUILT_PRODUCTS_DIR)/include/**",
 				);
 				LIBRARY_SEARCH_PATHS = (
@@ -250,10 +251,11 @@
 		915451001C3D1520000CBFD2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../node_modules/react-native";
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
+					"$(SRCROOT)/../node_modules/react-native/React/**",
 					"$(SRCROOT)/../../react-native/React/**",
-					"$(SRCROOT)/../../react-native/Libraries/**",
 					"$(BUILT_PRODUCTS_DIR)/include/**",
 				);
 				LIBRARY_SEARCH_PATHS = (
