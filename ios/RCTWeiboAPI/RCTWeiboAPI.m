@@ -9,15 +9,9 @@
 #import "RCTWeiboAPI.h"
 #import "WeiboSDK.h"
 
-#if __has_include(<React/RCTBridge.h>)
 #import <React/RCTBridge.h>
 #import <React/RCTEventDispatcher.h>
-#import <React/RCTImageLoader.h>
-#else
-#import "RCTBridge.h"
-#import "RCTEventDispatcher.h"
-#import "RCTImageLoader.h"
-#endif
+#import <React/RCTImageLoaderProtocol.h>
 
 #define INVOKE_FAILED (@"WeiBo API invoke returns false.")
 #define RCTWBEventName (@"Weibo_Resp")
@@ -67,7 +61,7 @@ RCT_EXPORT_MODULE();
 
 + (BOOL)requiresMainQueueSetup
 {
-  return NO;
+  return YES;
 }
 
 - (void)dealloc
@@ -78,7 +72,7 @@ RCT_EXPORT_MODULE();
 RCT_REMAP_METHOD(register, registerWithConfig:(NSDictionary *)config)
 {
     if (gRegister) {
-        return @YES;
+        return;
     }
     self.redirectURI = config[@"redirectURI"];
     self.scope = config[@"scope"];
@@ -86,7 +80,6 @@ RCT_REMAP_METHOD(register, registerWithConfig:(NSDictionary *)config)
     if ([WeiboSDK registerApp:appId]) {
         gRegister = YES;
     }
-    return @YES
 }
 
 
@@ -107,8 +100,9 @@ RCT_EXPORT_METHOD(logout)
     [WeiboSDK logOutWithToken:nil delegate:nil withTag:nil];
 }
 
-RCT_EXPORT_METHOD(shareToWeibo:(NSDictionary *)aData
-                  :(RCTResponseSenderBlock)callback)
+RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
+                  resolver:(RCTPromiseResolveBlock)resolve 
+                  rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSString *imageUrl = aData[RCTWBShareImageUrl];
     if (imageUrl.length && _bridge.imageLoader) {
@@ -116,14 +110,14 @@ RCT_EXPORT_METHOD(shareToWeibo:(NSDictionary *)aData
         if (![aData[RCTWBShareType] isEqualToString:RCTWBShareTypeImage]) {
             size = CGSizeMake(80,80);
         }
-        [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:imageUrl] size:size scale:1 clipped:FALSE resizeMode:UIViewContentModeScaleToFill progressBlock:nil partialLoadBlock: nil completionBlock:^(NSError *error, UIImage *image) {
+        [[self.bridge moduleForName:@"ImageLoader" lazilyLoadIfNecessary:YES] loadImageWithURLRequest:[RCTConvert NSURLRequest:imageUrl] size:size scale:1 clipped:FALSE resizeMode:UIViewContentModeScaleToFill progressBlock:nil partialLoadBlock: nil completionBlock:^(NSError *error, UIImage *image) {
             [self _shareWithData:aData image:image];
         }];
     }
     else {
         [self _shareWithData:aData image:nil];
     }
-    callback(@[[NSNull null]]);
+    resolve(@YES);
 }
 
 
