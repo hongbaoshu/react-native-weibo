@@ -105,7 +105,8 @@ RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSString *imageUrl = aData[RCTWBShareImageUrl];
-    if (imageUrl.length && _bridge.imageLoader) {
+    
+    if (imageUrl.length) {
         CGSize size = CGSizeZero;
         if (![aData[RCTWBShareType] isEqualToString:RCTWBShareTypeImage]) {
             size = CGSizeMake(80,80);
