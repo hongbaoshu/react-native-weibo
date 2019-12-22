@@ -36,6 +36,8 @@ BOOL gRegister = NO;
 @interface RCTWeiboAPI()<WeiboSDKDelegate>
 @property (nonatomic, strong) NSString *redirectURI;
 @property (nonatomic, strong) NSString *scope;
+@property (nonatomic, strong) RCTPromiseResolveBlock resolver;
+@property (nonatomic, strong) RCTPromiseRejectBlock rejecter;
 @end
 
 @implementation RCTWeiboAPI
@@ -88,7 +90,8 @@ RCT_REMAP_METHOD(login,resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPro
     WBAuthorizeRequest *request = [self _genAuthRequest];
     BOOL success = [WeiboSDK sendRequest:request];
     if(success){
-        resolve(@YES);
+        self.resolver = resolve;
+        self.rejecter = reject;
     } else {
         NSError *error = [NSError new];
         reject(@"no_events", @"There were no events", error);
@@ -118,7 +121,9 @@ RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
     else {
         [self _shareWithData:aData image:nil];
     }
-    resolve(@YES);
+    
+    self.resolver = resolve;
+    self.rejecter = reject;
 }
 
 
@@ -180,7 +185,7 @@ RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
             body[@"errMsg"] = [self _getErrMsg:response.statusCode];
         }
     }
-    [self.bridge.eventDispatcher sendAppEventWithName:RCTWBEventName body:body];
+    self.resolver(body);
 }
 
 #pragma mark - private
