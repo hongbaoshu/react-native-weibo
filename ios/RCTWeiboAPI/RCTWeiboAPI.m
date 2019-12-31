@@ -55,7 +55,6 @@ RCT_EXPORT_MODULE();
 {
     self = [super init];
     if (self) {
-        
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleOpenURL:) name:@"RCTOpenURLNotification" object:nil];
     }
     return self;
@@ -104,11 +103,11 @@ RCT_EXPORT_METHOD(logout)
 }
 
 RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
-                  resolver:(RCTPromiseResolveBlock)resolve 
+                  resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSString *imageUrl = aData[RCTWBShareImageUrl];
-    
+
     if (imageUrl.length) {
         CGSize size = CGSizeZero;
         if (![aData[RCTWBShareType] isEqualToString:RCTWBShareTypeImage]) {
@@ -121,7 +120,7 @@ RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
     else {
         [self _shareWithData:aData image:nil];
     }
-    
+
     self.resolver = resolve;
     self.rejecter = reject;
 }
@@ -140,7 +139,7 @@ RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
 {
     if ([request isKindOfClass:WBProvideMessageForWeiboRequest.class])
     {
-        
+
     }
 }
 
@@ -165,7 +164,9 @@ RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
         }
         else
         {
-            body[@"errMsg"] = [self _getErrMsg:response.statusCode];
+            NSString * errMsg = [self _getErrMsg:response.statusCode];
+            NSError *error = [NSError errorWithDomain:@"com.hongbaoshu.app" code:response.statusCode userInfo:[NSDictionary dictionaryWithObject:errMsg forKey:NSLocalizedDescriptionKey]];
+            self.rejecter([NSString stringWithFormat: @"%ld", (long)response.statusCode], errMsg, error);
         }
     }
     // 认证
@@ -182,7 +183,9 @@ RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
         }
         else
         {
-            body[@"errMsg"] = [self _getErrMsg:response.statusCode];
+            NSString * errMsg = [self _getErrMsg:response.statusCode];
+            NSError *error = [NSError errorWithDomain:@"com.hongbaoshu.app" code:response.statusCode userInfo:[NSDictionary dictionaryWithObject:errMsg forKey:NSLocalizedDescriptionKey]];
+            self.rejecter([NSString stringWithFormat: @"%ld", (long)response.statusCode], errMsg, error);
         }
     }
     self.resolver(body);
@@ -226,7 +229,7 @@ RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
     WBMessageObject *message = [WBMessageObject message];
     NSString *text = aData[RCTWBShareText];
     message.text = text;
-    
+
     NSString *type = aData[RCTWBShareType];
     if ([type isEqualToString:RCTWBShareTypeText]) {
     }
@@ -257,11 +260,11 @@ RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
             message.mediaObject.thumbnailData = UIImageJPEGRepresentation(aImage, 0.7);
         }
     }
-    
+
     WBAuthorizeRequest *authRequest = [self _genAuthRequest];
     NSString *accessToken = aData[RCTWBShareAccessToken];
     WBSendMessageToWeiboRequest *request = [WBSendMessageToWeiboRequest requestWithMessage:message authInfo:authRequest access_token:accessToken];
-    
+
     BOOL success = [WeiboSDK sendRequest:request];
     if (!success) {
         NSMutableDictionary *body = [NSMutableDictionary new];
@@ -277,7 +280,7 @@ RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
     WBAuthorizeRequest *authRequest = [WBAuthorizeRequest request];
     authRequest.redirectURI = self.redirectURI;
     authRequest.scope = self.scope;
-    
+
     return authRequest;
 }
 
