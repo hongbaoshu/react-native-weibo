@@ -166,7 +166,7 @@ RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
         {
             NSString * errMsg = [self _getErrMsg:response.statusCode];
             NSError *error = [NSError errorWithDomain:@"com.hongbaoshu.app" code:response.statusCode userInfo:[NSDictionary dictionaryWithObject:errMsg forKey:NSLocalizedDescriptionKey]];
-            self.rejecter([NSString stringWithFormat: @"%ld", (long)response.statusCode], errMsg, error);
+            self.rejecter([@(response.statusCode) stringValue], errMsg, error);
         }
     }
     // 认证
@@ -185,7 +185,7 @@ RCT_REMAP_METHOD(share, data:(NSDictionary *)aData
         {
             NSString * errMsg = [self _getErrMsg:response.statusCode];
             NSError *error = [NSError errorWithDomain:@"com.hongbaoshu.app" code:response.statusCode userInfo:[NSDictionary dictionaryWithObject:errMsg forKey:NSLocalizedDescriptionKey]];
-            self.rejecter([NSString stringWithFormat: @"%ld", (long)response.statusCode], errMsg, error);
+            self.rejecter([@(response.statusCode) stringValue], errMsg, error);
         }
     }
     self.resolver(body);
